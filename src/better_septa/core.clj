@@ -1,7 +1,9 @@
 (ns better-septa.core
-  (:gen-class))
+  (:use [compojure.core :only (defroutes GET)]
+        [ring.adapter.jetty :as ring]))
 
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  (println "Hello, World!"))
+(defroutes routes
+  (GET "/" [] "<h2>Hello World</h2>"))
+
+(defn -main []
+  (run-jetty #'routes {:port 8080 :join? false}))
