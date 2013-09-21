@@ -7,6 +7,9 @@
                  [org.clojure/java.jdbc "0.2.3"]
                  [postgresql "9.1-901.jdbc4"]
                  [ring/ring-jetty-adapter "1.2.0"]
-                 [compojure "1.1.5"]]
-  :main better-septa.core
-  :profiles {:uberjar {:aot :all}})
+                 [compojure "1.1.5"]
+                 [org.clojure/data.json "0.2.3"]]
+  :plugins [[lein-ring "0.8.5"]]
+  :ring {:handler better-septa.handler/app}
+  :profiles
+  {:dev {:dependencies [[ring-mock "0.1.5"]]}})
