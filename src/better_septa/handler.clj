@@ -7,6 +7,7 @@
 
 (defn haversine
   [{lon1 :longitude lat1 :latitude} {lon2 :longitude lat2 :latitude}]
+  """[Calculates the distance between two coordinates](http://rosettacode.org/wiki/Haversine_formula#Clojure)"""
   (let [radius 6372.8
         dlat (Math/toRadians (- lat2 lat1))
         dlon (Math/toRadians (- lon2 lon1))
@@ -49,15 +50,40 @@
                     (map-indexed vector stops)))]
     (get stop-pair 0)))
 
-(defn intermediate-stops-given-stops
-  [stops start-stop end-stop]
-  (let [f-indices #(map (partial stop-index %1) [start-stop end-stop])
-      indices (map f-indices (route-stops-by-direction stops))]
-; [[2, 1], [1, 2]]
-      indices
-    ))
+(defn slice-between [items begin-index end-index]
+  "Returns an inclusive slice items between the passed indices"
+  (->> items (take (+ end-index 1)) (drop begin-index)))
+
+(defn stop-indices [stops stop-ids]
+  "Finds the indices corresponding to the passed stop ids"
+  (map (partial stop-index stops) stop-ids))
+
+(defn stop-indices-by-group [stop-groups stop-ids]
+  "Finds the indices of the passed stop ids for each stop group"
+  (map (fn [s] {:stops s :indices (stop-indices s stop-ids)}) stop-groups))
+
+(defn items-in-order [items]
+  "Returns true if the passed items are in order. TODO: inefficient"
+  (= (sort items) items))
+
+(defn stop-indices-by-proper-direction [stop-groups stop-ids]
+  "Returns the first stop indices whose indices are in order"
+  (let [info (stop-indices-by-group stop-groups stop-ids)
+        f #(items-in-order (:indices %1))] ; TODO: check all 
+    (first (filter f info))))
+
+(defn intermediate-stops-given-stops [stops start-stop end-stop]
+  "Returns the intermediate stops given the passed stops between the
+  start and end stop. Will figure out the appropriate direction of
+  the stops."
+  (let [stop-groups (route-stops-by-direction stops)
+        info (stop-indices-by-proper-direction stop-groups
+                                               [start-stop end-stop])
+        {[begin end] :indices target-stops :stops} info]
+      (slice-between target-stops begin end)))
 
 (defn intermediate-stops
+  "Use to determine the intermediate stops between the passed stop ids given the passed route"
   [route start-stop end-stop]
   (let [stops (route-stops route)]
     (intermediate-stops-given-stops stops start-stop end-stop)))
